@@ -90,6 +90,7 @@
         });
         progress.offsetWidth; /* Repaint */
         if(Settings.doRemove == true){
+
           setTimeout(function() {
             css(progress, {
               transition: 'all ' + speed + 'ms linear',
@@ -101,9 +102,7 @@
             }, speed);
           }, speed);
         } else {
-          setTimeout(function(){
-            next();
-          }, speed * 2)
+          setTimeout(next, speed * 2)
         }
 
       } else {
