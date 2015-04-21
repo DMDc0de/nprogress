@@ -14,7 +14,7 @@
 })(this, function() {
   var NProgress = {};
 
-  NProgress.version = '0.1.6';
+  NProgress.version = '0.1.7';
 
   var Settings = NProgress.settings = {
     minimum: 0.08,
@@ -28,7 +28,8 @@
     barSelector: '[role="bar"]',
     spinnerSelector: '[role="spinner"]',
     parent: 'body',
-    template: '<div class="bar" role="bar"><div class="peg"></div></div><div class="spinner" role="spinner"><div class="spinner-icon"></div></div>'
+    template: '<div class="bar" role="bar"><div class="peg"></div></div><div class="spinner" role="spinner"><div class="spinner-icon"></div></div>',
+    doRemove : false
   };
 
   /**
@@ -83,22 +84,28 @@
 
       if (n === 1) {
         // Fade out
-        css(progress, { 
-          transition: 'none', 
-          opacity: 1 
+        css(progress, {
+          transition: 'none',
+          opacity: 1
         });
         progress.offsetWidth; /* Repaint */
-
-        setTimeout(function() {
-          css(progress, { 
-            transition: 'all ' + speed + 'ms linear', 
-            opacity: 0 
-          });
+        if(Settings.doRemove == true){
           setTimeout(function() {
-            NProgress.remove();
-            next();
+            css(progress, {
+              transition: 'all ' + speed + 'ms linear',
+              opacity: 0
+            });
+            setTimeout(function() {
+              NProgress.remove();
+              next();
+            }, speed);
           }, speed);
-        }, speed);
+        } else {
+          setTimeout(function(){
+            next();
+          }, speed * 2)
+        }
+
       } else {
         setTimeout(next, speed);
       }
@@ -178,24 +185,24 @@
   /**
    * Waits for all supplied jQuery promises and
    * increases the progress as the promises resolve.
-   * 
+   *
    * @param $promise jQUery Promise
    */
   (function() {
     var initial = 0, current = 0;
-    
+
     NProgress.promise = function($promise) {
       if (!$promise || $promise.state() == "resolved") {
         return this;
       }
-      
+
       if (current == 0) {
         NProgress.start();
       }
-      
+
       initial++;
       current++;
-      
+
       $promise.always(function() {
         current--;
         if (current == 0) {
@@ -205,10 +212,10 @@
             NProgress.set((initial - current) / initial);
         }
       });
-      
+
       return this;
     };
-    
+
   })();
 
   /**
@@ -220,7 +227,7 @@
     if (NProgress.isRendered()) return document.getElementById('nprogress');
 
     addClass(document.documentElement, 'nprogress-busy');
-    
+
     var progress = document.createElement('div');
     progress.id = 'nprogress';
     progress.innerHTML = Settings.template;
@@ -229,7 +236,7 @@
         perc     = fromStart ? '-100' : toBarPerc(NProgress.status || 0),
         parent   = document.querySelector(Settings.parent),
         spinner;
-    
+
     css(bar, {
       transition: 'all 0 linear',
       transform: 'translate3d(' + perc + '%,0,0)'
@@ -340,7 +347,7 @@
 
   var queue = (function() {
     var pending = [];
-    
+
     function next() {
       var fn = pending.shift();
       if (fn) {
@@ -355,10 +362,10 @@
   })();
 
   /**
-   * (Internal) Applies css properties to an element, similar to the jQuery 
+   * (Internal) Applies css properties to an element, similar to the jQuery
    * css method.
    *
-   * While this helper does assist with vendor prefixed property names, it 
+   * While this helper does assist with vendor prefixed property names, it
    * does not perform any manipulation of values prior to setting styles.
    */
 
@@ -399,7 +406,7 @@
 
     return function(element, properties) {
       var args = arguments,
-          prop, 
+          prop,
           value;
 
       if (args.length == 2) {
@@ -430,7 +437,7 @@
     var oldList = classList(element),
         newList = oldList + name;
 
-    if (hasClass(oldList, name)) return; 
+    if (hasClass(oldList, name)) return;
 
     // Trim the opening space.
     element.className = newList.substring(1);
@@ -454,8 +461,8 @@
   }
 
   /**
-   * (Internal) Gets a space separated list of the class names on the element. 
-   * The list is wrapped with a single space on each end to facilitate finding 
+   * (Internal) Gets a space separated list of the class names on the element.
+   * The list is wrapped with a single space on each end to facilitate finding
    * matches within the list.
    */
 
@@ -473,4 +480,3 @@
 
   return NProgress;
 });
-
